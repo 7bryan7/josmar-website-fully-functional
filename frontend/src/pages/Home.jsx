@@ -508,9 +508,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      {sections
-        .filter(s => s.section_key !== 'logos' && s.section_key !== 'news')
-        .map(section => renderSection(section))}
+      {sections.map(section => renderSection(section))}
     </div>
   );
 }
