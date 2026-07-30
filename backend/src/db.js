@@ -11,29 +11,24 @@ export class Database {
   }
 
   async query(sql, params = []) {
-    if (typeof this.db.query === 'function' && typeof this.db.prepare !== 'function') {
-      // It is the DatabaseService interface
+    if (typeof this.db.query === 'function') {
       return this.db.query(sql, params);
     }
-    // Fallback to D1 raw bindings API
-    const dbTarget = typeof this.db.query === 'function' ? this.db.d1 : this.db;
-    return dbTarget.prepare(sql).bind(...params).all();
+    return this.db.prepare(sql).bind(...params).all();
   }
 
   async get(sql, params = []) {
-    if (typeof this.db.get === 'function' && typeof this.db.prepare !== 'function') {
+    if (typeof this.db.get === 'function') {
       return this.db.get(sql, params);
     }
-    const dbTarget = typeof this.db.get === 'function' ? this.db.d1 : this.db;
-    return dbTarget.prepare(sql).bind(...params).first();
+    return this.db.prepare(sql).bind(...params).first();
   }
 
   async run(sql, params = []) {
-    if (typeof this.db.run === 'function' && typeof this.db.prepare !== 'function') {
+    if (typeof this.db.run === 'function') {
       return this.db.run(sql, params);
     }
-    const dbTarget = typeof this.db.run === 'function' ? this.db.d1 : this.db;
-    return dbTarget.prepare(sql).bind(...params).run();
+    return this.db.prepare(sql).bind(...params).run();
   }
 
   async batch(statements) {
