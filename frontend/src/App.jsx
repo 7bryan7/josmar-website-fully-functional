@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, lazy, Suspense }
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { api } from './api/client';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Context for global state
 export const AppContext = createContext(null);
@@ -330,50 +331,52 @@ const CMSSettings = lazy(() => import('./cms/Settings'));
 
 export default function App() {
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-            <div className="w-10 h-10 border-4 border-accent-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        }>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
-            <Route path="/about-us" element={<PublicLayout><AboutUs /></PublicLayout>} />
-            <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
-            <Route path="/projects" element={<PublicLayout><Projects /></PublicLayout>} />
-            <Route path="/projects/:slug" element={<PublicLayout><ProjectDetail /></PublicLayout>} />
-            <Route path="/credentials" element={<PublicLayout><Credentials /></PublicLayout>} />
-            <Route path="/gallery" element={<PublicLayout><Gallery /></PublicLayout>} />
-            <Route path="/careers" element={<PublicLayout><Careers /></PublicLayout>} />
-            <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
-            <Route path="/blog/:slug" element={<PublicLayout><BlogDetail /></PublicLayout>} />
-            <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
-            <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicy /></PublicLayout>} />
-            <Route path="/terms-conditions" element={<PublicLayout><TermsConditions /></PublicLayout>} />
+    <ErrorBoundary>
+      <AppProvider>
+        <BrowserRouter>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+              <div className="w-10 h-10 border-4 border-accent-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          }>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
+              <Route path="/about-us" element={<PublicLayout><AboutUs /></PublicLayout>} />
+              <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
+              <Route path="/projects" element={<PublicLayout><Projects /></PublicLayout>} />
+              <Route path="/projects/:slug" element={<PublicLayout><ProjectDetail /></PublicLayout>} />
+              <Route path="/credentials" element={<PublicLayout><Credentials /></PublicLayout>} />
+              <Route path="/gallery" element={<PublicLayout><Gallery /></PublicLayout>} />
+              <Route path="/careers" element={<PublicLayout><Careers /></PublicLayout>} />
+              <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
+              <Route path="/blog/:slug" element={<PublicLayout><BlogDetail /></PublicLayout>} />
+              <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
+              <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicy /></PublicLayout>} />
+              <Route path="/terms-conditions" element={<PublicLayout><TermsConditions /></PublicLayout>} />
 
-            {/* Admin Login Route */}
-            <Route path="/admin/login" element={<CMSLogin />} />
+              {/* Admin Login Route */}
+              <Route path="/admin/login" element={<CMSLogin />} />
 
-            {/* Protected Admin Routes */}
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <CMSLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<CMSDashboard />} />
-              <Route path="media" element={<CMSMediaLibrary />} />
-              <Route path="settings" element={<CMSSettings />} />
-              {/* Dynamic CRUD for various modules */}
-              <Route path=":module" element={<CMSCRUDManager />} />
-            </Route>
+              {/* Protected Admin Routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <CMSLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<CMSDashboard />} />
+                <Route path="media" element={<CMSMediaLibrary />} />
+                <Route path="settings" element={<CMSSettings />} />
+                {/* Dynamic CRUD for various modules */}
+                <Route path=":module" element={<CMSCRUDManager />} />
+              </Route>
 
-            {/* 404 Route */}
-            <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </AppProvider>
+              {/* 404 Route */}
+              <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </AppProvider>
+    </ErrorBoundary>
   );
 }

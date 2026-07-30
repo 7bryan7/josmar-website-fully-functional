@@ -68,32 +68,102 @@ export default function Home() {
   const { settings: globalSettings } = useApp();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchHomeData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('[Home] Fetching homepage data from /api/public/homepage...');
+      const homeData = await api.get('/api/public/homepage');
+      console.log('[Home] Homepage data fetch succeeded. Payload:', homeData);
+      
+      // Basic sanity checks
+      if (!homeData || typeof homeData !== 'object') {
+        throw new Error('Invalid payload returned from server');
+      }
+      
+      setData(homeData);
+    } catch (e) {
+      console.error('[Home] Failed to load homepage data:', e);
+      setError(e.message || 'Failed to load homepage data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchHomeData() {
-      try {
-        const homeData = await api.get('/api/public/homepage');
-        setData(homeData);
-      } catch (e) {
-        console.error('Failed to load homepage data', e);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchHomeData();
   }, []);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-32 bg-slate-50">
+      <div className="flex justify-center items-center py-32 bg-slate-50 animate-pulse">
         <div className="w-10 h-10 border-4 border-accent-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  if (!data) return null;
+  // Graceful fallback for API failures (e.g. database down, 500 error)
+  if (error || !data) {
+    return (
+      <div className="max-w-4xl mx-auto my-16 px-4 text-center">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 shadow-sm">
+          <h2 className="text-red-800 font-bold text-lg mb-2">Could Not Render Homepage Content</h2>
+          <p className="text-slate-600 text-sm mb-6">
+            The frontend loaded successfully, but we encountered an error fetching content from the server:
+          </p>
+          <div className="bg-slate-900 text-slate-100 font-mono text-xs p-4 rounded-lg text-left overflow-x-auto max-w-lg mx-auto mb-6">
+            Error: {error || 'No data payload returned'}
+          </div>
+          <p className="text-xs text-slate-500 mb-6 font-semibold">
+            Please verify your Vercel environment variables (such as <code>DATABASE_URL</code>) and ensure your database is running.
+          </p>
+          <div className="flex justify-center gap-4">
+            <button 
+              onClick={fetchHomeData} 
+              className="bg-accent-500 text-white font-bold text-xs px-6 py-2.5 rounded-lg hover:bg-accent-600 transition-colors"
+            >
+              Retry Connection
+            </button>
+            <Link 
+              to="/admin" 
+              className="bg-slate-900 text-white font-bold text-xs px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-colors"
+            >
+              CMS Control Panel
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const { sections, services, projects, testimonials, clients, news } = data;
+  const { sections = [], services = [], projects = [], testimonials = [], clients = [], news = [] } = data;
+
+  // Graceful fallback for empty CMS sections (0 items returned)
+  if (sections.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto my-16 px-4 text-center">
+        <div className="bg-sky-50 border border-sky-200 rounded-2xl p-8 shadow-sm">
+          <h2 className="text-sky-900 font-bold text-lg mb-2">Homepage Under Construction</h2>
+          <p className="text-slate-600 text-sm mb-6">
+            The system connected to the database successfully, but there are no active sections configured for the homepage.
+          </p>
+          <p className="text-xs text-slate-500 mb-6 font-semibold">
+            If you are the administrator, log in to the CMS Control Panel, configure your homepage components (such as Hero, Intro, capabilities), and publish them.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link 
+              to="/admin" 
+              className="bg-accent-500 text-white font-bold text-xs px-6 py-2.5 rounded-lg hover:bg-accent-600 transition-colors"
+            >
+              Log In to CMS Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Renderer map for homepage sections
   const renderSection = (section) => {
