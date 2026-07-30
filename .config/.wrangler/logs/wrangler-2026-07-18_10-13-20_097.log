@@ -1,0 +1,35 @@
+
+--- 2026-07-18T10:13:20.514Z debug
+🪵  Writing logs to "/home/bryan/Documents/josmar-website/.config/.wrangler/logs/wrangler-2026-07-18_10-13-20_097.log"
+---
+
+--- 2026-07-18T10:13:20.513Z log
+Proxy environment variables detected. We'll use your proxy for fetch requests.
+---
+
+--- 2026-07-18T10:13:20.699Z debug
+Metrics dispatcher: Dispatching disabled - would have sent {"deviceId":"33e8dc9d-707a-4d07-8f81-ff537911538d","event":"wrangler command started","timestamp":1784369600699,"properties":{"amplitude_session_id":1784369600692,"amplitude_event_id":0,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#28~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Jul  1 15:50:57 UTC 2","nodeVersion":18,"packageManager":"npm","isFirstUsage":true,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":["local"],"argsCombination":"local","command":"wrangler r2 object put","args":{}}}.
+---
+
+--- 2026-07-18T10:13:20.708Z debug
+.env file not found at ".env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-07-18T10:13:20.842Z log
+
+ ⛅️ wrangler 3.114.17
+---------------------
+
+---
+
+--- 2026-07-18T10:13:20.892Z log
+Creating object "cert-leed.svg" in bucket "josmar-media".
+---
+
+--- 2026-07-18T10:13:22.409Z log
+Upload complete.
+---
+
+--- 2026-07-18T10:13:22.419Z debug
+Metrics dispatcher: Dispatching disabled - would have sent {"deviceId":"33e8dc9d-707a-4d07-8f81-ff537911538d","event":"wrangler command completed","timestamp":1784369602419,"properties":{"amplitude_session_id":1784369600692,"amplitude_event_id":1,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#28~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Jul  1 15:50:57 UTC 2","nodeVersion":18,"packageManager":"npm","isFirstUsage":true,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":["local"],"argsCombination":"local","command":"wrangler r2 object put","args":{},"durationMs":1864,"durationSeconds":1.864,"durationMinutes":0.03106666666666667}}.
+---

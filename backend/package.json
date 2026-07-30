@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "wrangler": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 WRANGLER_SEND_METRICS=false XDG_CONFIG_HOME=../.config XDG_DATA_HOME=../.data XDG_CACHE_HOME=../.cache wrangler",
+    "dev": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 WRANGLER_SEND_METRICS=false XDG_CONFIG_HOME=../.config XDG_DATA_HOME=../.data XDG_CACHE_HOME=../.cache wrangler dev --port=8787",
+    "build": "echo 'No build required for backend'",
+    "deploy": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 WRANGLER_SEND_METRICS=false XDG_CONFIG_HOME=../.config XDG_DATA_HOME=../.data XDG_CACHE_HOME=../.cache wrangler deploy",
+    "db:migrate": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 WRANGLER_SEND_METRICS=false XDG_CONFIG_HOME=../.config XDG_DATA_HOME=../.data XDG_CACHE_HOME=../.cache wrangler d1 execute josmar-db --local --file=../db/schema.sql",
+    "db:seed": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 WRANGLER_SEND_METRICS=false XDG_CONFIG_HOME=../.config XDG_DATA_HOME=../.data XDG_CACHE_HOME=../.cache wrangler d1 execute josmar-db --local --file=../db/seed.sql"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "itty-router": "^4.0.28",
+    "jose": "^5.2.4",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.60.0"
+  }
+}

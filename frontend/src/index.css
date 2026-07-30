@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans min-h-screen flex flex-col m-0;
+  }
+}
+
+/* Custom transitions and scroll behaviors */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Rounded cards and soft shadows design tokens */
+.card-premium {
+  @apply bg-white rounded-2xl shadow-soft border border-slate-100/50 hover:shadow-md transition-shadow duration-300 overflow-hidden;
+}
+
+.button-primary {
+  @apply bg-accent-500 hover:bg-accent-600 text-white font-medium px-6 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 inline-flex items-center justify-center gap-2;
+}
+
+.button-secondary {
+  @apply bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-medium px-6 py-2.5 rounded-xl transition-all duration-200 inline-flex items-center justify-center gap-2;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+}
+
+/* Custom premium floating animations */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-22px); }
+}
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float-delayed 9s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+.animate-float-fast {
+  animation: float-fast 5.5s ease-in-out infinite;
+  animation-delay: 0.5s;
+}

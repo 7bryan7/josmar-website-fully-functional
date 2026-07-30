@@ -1,0 +1,16 @@
+name = "josmar-backend"
+main = "src/index.js"
+compatibility_date = "2024-03-01"
+
+[vars]
+JWT_SECRET = "super_secret_local_jwt_key_should_be_changed_in_prod"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "josmar-db"
+database_id = "local-db-id"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "josmar-media"
+preview_bucket_name = "josmar-media-preview"

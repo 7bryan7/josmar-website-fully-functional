@@ -1,0 +1,61 @@
+
+--- 2026-07-21T16:39:11.241Z debug
+🪵  Writing logs to "/home/bryan/Documents/josmar-website/.config/.wrangler/logs/wrangler-2026-07-21_16-39-10_990.log"
+---
+
+--- 2026-07-21T16:39:11.241Z debug
+Metrics dispatcher: Dispatching disabled - would have sent {"deviceId":"33e8dc9d-707a-4d07-8f81-ff537911538d","event":"wrangler command started","timestamp":1784651951240,"properties":{"amplitude_session_id":1784651951237,"amplitude_event_id":0,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#28~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Jul  1 15:50:57 UTC 2","nodeVersion":18,"packageManager":"npm","isFirstUsage":true,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":["local"],"argsCombination":"local","command":"wrangler d1 execute","args":{}}}.
+---
+
+--- 2026-07-21T16:39:11.247Z debug
+.env file not found at ".env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-07-21T16:39:13.490Z log
+
+ ⛅️ wrangler 3.114.17 (update available 4.112.0)
+----------------------------------------------------------
+
+---
+
+--- 2026-07-21T16:39:13.658Z warn
+▲ [WARNING] The version of Wrangler you are using is now out-of-date.
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+---
+
+--- 2026-07-21T16:39:13.670Z debug
+No experimental flag store instantiated
+---
+
+--- 2026-07-21T16:39:13.670Z debug
+Attempted to use flag "RESOURCES_PROVISION" which has not been instantiated
+---
+
+--- 2026-07-21T16:39:13.670Z debug
+No experimental flag store instantiated
+---
+
+--- 2026-07-21T16:39:13.671Z debug
+Attempted to use flag "RESOURCES_PROVISION" which has not been instantiated
+---
+
+--- 2026-07-21T16:39:13.681Z log
+🌀 Executing on local database josmar-db (local-db-id) from .wrangler/state/v3/d1:
+---
+
+--- 2026-07-21T16:39:13.682Z log
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+---
+
+--- 2026-07-21T16:39:14.611Z log
+🚣 46 commands executed successfully.
+---
+
+--- 2026-07-21T16:39:14.615Z debug
+Metrics dispatcher: Dispatching disabled - would have sent {"deviceId":"33e8dc9d-707a-4d07-8f81-ff537911538d","event":"wrangler command completed","timestamp":1784651954615,"properties":{"amplitude_session_id":1784651951237,"amplitude_event_id":1,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#28~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Jul  1 15:50:57 UTC 2","nodeVersion":18,"packageManager":"npm","isFirstUsage":true,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":["local"],"argsCombination":"local","command":"wrangler d1 execute","args":{},"durationMs":3434,"durationSeconds":3.434,"durationMinutes":0.05723333333333334}}.
+---

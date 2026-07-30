@@ -1,0 +1,19 @@
+{
+  "name": "josmar-website",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev:frontend": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 npm run dev --workspace=frontend",
+    "dev:backend": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 npm run dev --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build": "npm run build:frontend",
+    "db:migrate": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 npm run db:migrate --workspace=backend",
+    "db:seed": "no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 npm run db:seed --workspace=backend"
+  }
+}

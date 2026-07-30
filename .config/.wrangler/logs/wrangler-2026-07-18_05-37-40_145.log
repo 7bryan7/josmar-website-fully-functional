@@ -1,0 +1,237 @@
+
+--- 2026-07-18T05:37:40.243Z debug
+🪵  Writing logs to "/home/bryan/Documents/josmar-website/.config/.wrangler/logs/wrangler-2026-07-18_05-37-40_145.log"
+---
+
+--- 2026-07-18T05:37:40.243Z debug
+Metrics dispatcher: Dispatching disabled - would have sent {"deviceId":"33e8dc9d-707a-4d07-8f81-ff537911538d","event":"wrangler command started","timestamp":1784353060243,"properties":{"amplitude_session_id":1784353060241,"amplitude_event_id":0,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#40~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Jun 23 16:48:12 UTC 2","nodeVersion":18,"packageManager":"npm","isFirstUsage":true,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":[],"argsCombination":"","command":"wrangler dev","args":{}}}.
+---
+
+--- 2026-07-18T05:37:40.246Z debug
+.env file not found at ".env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-07-18T05:37:40.259Z log
+
+ ⛅️ wrangler 3.114.17 (update available 4.112.0)
+----------------------------------------------------------
+
+---
+
+--- 2026-07-18T05:37:40.324Z warn
+▲ [WARNING] The version of Wrangler you are using is now out-of-date.
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+---
+
+--- 2026-07-18T05:37:40.349Z debug
+.env file not found at ".dev.vars". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-07-18T05:37:40.350Z log
+Your Worker and resources are simulated locally via Miniflare. For more information, see: https://developers.cloudflare.com/workers/testing/local-development.
+
+---
+
+--- 2026-07-18T05:37:40.351Z log
+Your worker has access to the following bindings:
+- D1 Databases:
+  - DB: josmar-db (local-db-id) [simulated locally]
+- R2 Buckets:
+  - MEDIA_BUCKET: josmar-media-preview [simulated locally]
+- Vars:
+  - JWT_SECRET: "super_secret_local_jwt_key_should_be_..."
+---
+
+--- 2026-07-18T05:37:40.454Z debug
+RemoteRuntimeController teardown beginning...
+---
+
+--- 2026-07-18T05:37:40.455Z debug
+RemoteRuntimeController teardown complete
+---
+
+--- 2026-07-18T05:37:40.456Z log
+⎔ Starting local server...
+---
+
+--- 2026-07-18T05:37:40.492Z debug
+[InspectorProxyWorker] handleProxyControllerIncomingMessage {"type":"reloadStart"}
+---
+
+--- 2026-07-18T05:37:40.594Z debug
+[InspectorProxyWorker] handleProxyControllerIncomingMessage {"type":"reloadComplete","proxyData":{"userWorkerUrl":{"protocol":"http:","hostname":"127.0.0.1","port":"42371"},"userWorkerInspectorUrl":{"protocol":"ws:","hostname":"127.0.0.1","port":"38169","pathname":"/core:user:josmar-backend"},"userWorkerInnerUrlOverrides":{"protocol":"http:"},"headers":{"MF-Proxy-Shared-Secret":"f022f06a-0ff4-44ef-9091-28cf0e9933dc"},"liveReload":false,"proxyLogsToController":false,"internalDurableObjects":[],"entrypointAddresses":{"default":{"host":"127.0.0.1","port":46543}}}}
+---
+
+--- 2026-07-18T05:37:40.601Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE {
+  method: 'Runtime.executionContextCreated',
+  params: {
+    context: {
+      id: 353815585,
+      origin: '',
+      name: 'Worker',
+      uniqueId: '4011241786664614793.8778167335050382125'
+    }
+  }
+}
+---
+
+--- 2026-07-18T05:37:40.602Z debug
+[InspectorProxyWorker] reconnectRuntimeWebSocket
+---
+
+--- 2026-07-18T05:37:40.604Z debug
+[InspectorProxyWorker] NEW RUNTIME WEBSOCKET http://127.0.0.1:38169/core:user:josmar-backend
+---
+
+--- 2026-07-18T05:37:40.605Z debug
+[InspectorProxyWorker] SEND TO DEVTOOLS {"method":"Runtime.executionContextsCleared"}
+---
+
+--- 2026-07-18T05:37:40.606Z debug
+[InspectorProxyWorker] RUNTIME WEBSOCKET OPENED
+---
+
+--- 2026-07-18T05:37:40.607Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.enable","id":100000001}
+---
+
+--- 2026-07-18T05:37:40.607Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Debugger.enable","id":100000002}
+---
+
+--- 2026-07-18T05:37:40.609Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Network.enable","id":100000003}
+---
+
+--- 2026-07-18T05:37:40.610Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000001, result: {} }
+---
+
+--- 2026-07-18T05:37:40.611Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE {
+  method: 'Debugger.scriptParsed',
+  params: {
+    scriptId: '3',
+    url: 'file:///home/bryan/Documents/josmar-website/backend/.wrangler/tmp/dev-c7ZxAD/index.js',
+    startLine: 0,
+    startColumn: 0,
+    endLine: 2689,
+    endColumn: 99,
+    executionContextId: 353815585,
+    hash: '31b1fe515a1bb1d2d37aa687f233e9ae63cb70b10ef3a06f19c94f219c18d86d',
+    buildId: '',
+    isLiveEdit: false,
+    sourceMapURL: 'index.js.map',
+    hasSourceURL: true,
+    isModule: true,
+    length: 102315,
+    scriptLanguage: 'JavaScript',
+    embedderName: 'index.js'
+  }
+}
+---
+
+--- 2026-07-18T05:37:40.612Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE {
+  method: 'Debugger.scriptParsed',
+  params: {
+    scriptId: '4',
+    url: 'cloudflare-internal:d1-api',
+    startLine: 0,
+    startColumn: 0,
+    endLine: 390,
+    endColumn: 0,
+    executionContextId: 353815585,
+    hash: 'f4316a8ee94643f57695b89a32ed3b9c709663174472eaaf27b74b5813eff99e',
+    buildId: '',
+    isLiveEdit: false,
+    sourceMapURL: '',
+    hasSourceURL: false,
+    isModule: true,
+    length: 15076,
+    scriptLanguage: 'JavaScript',
+    embedderName: 'cloudflare-internal:d1-api'
+  }
+}
+---
+
+--- 2026-07-18T05:37:40.617Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE {
+  id: 100000002,
+  result: { debuggerId: '5198862093917854213.-2236720502154146078' }
+}
+---
+
+--- 2026-07-18T05:37:40.617Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000003, method: 'Network.enable', result: {} }
+---
+
+--- 2026-07-18T05:37:50.600Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000004}
+---
+
+--- 2026-07-18T05:37:50.602Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000004, result: { id: '55f223b29706b249' } }
+---
+
+--- 2026-07-18T05:37:50.960Z debug
+DevEnv teardown beginning...
+---
+
+--- 2026-07-18T05:37:50.960Z debug
+ConfigController teardown beginning...
+---
+
+--- 2026-07-18T05:37:50.962Z debug
+BundlerController teardown beginning...
+---
+
+--- 2026-07-18T05:37:50.968Z debug
+LocalRuntimeController teardown beginning...
+---
+
+--- 2026-07-18T05:37:50.968Z log
+⎔ Shutting down local server...
+---
+
+--- 2026-07-18T05:37:50.969Z debug
+RemoteRuntimeController teardown beginning...
+---
+
+--- 2026-07-18T05:37:50.969Z debug
+RemoteRuntimeController teardown complete
+---
+
+--- 2026-07-18T05:37:50.969Z debug
+ProxyController teardown beginning...
+---
+
+--- 2026-07-18T05:37:50.970Z debug
+ConfigController teardown complete
+---
+
+--- 2026-07-18T05:37:50.983Z debug
+LocalRuntimeController teardown complete
+---
+
+--- 2026-07-18T05:37:50.984Z debug
+ProxyController teardown complete
+---
+
+--- 2026-07-18T05:37:51.024Z debug
+BundlerController teardown complete
+---
+
+--- 2026-07-18T05:37:51.025Z debug
+DevEnv teardown complete
+---
+
+--- 2026-07-18T05:37:51.029Z debug
+Metrics dispatcher: Dispatching disabled - would have sent {"deviceId":"33e8dc9d-707a-4d07-8f81-ff537911538d","event":"wrangler command completed","timestamp":1784353071029,"properties":{"amplitude_session_id":1784353060241,"amplitude_event_id":1,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#40~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Jun 23 16:48:12 UTC 2","nodeVersion":18,"packageManager":"npm","isFirstUsage":true,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":[],"argsCombination":"","command":"wrangler dev","args":{},"durationMs":10809,"durationSeconds":10.809,"durationMinutes":0.18014999999999998}}.
+---
