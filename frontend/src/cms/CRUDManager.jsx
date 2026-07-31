@@ -312,10 +312,11 @@ export default function CRUDManager() {
     setLoading(true);
     setSelectedIds([]);
     try {
-      const data = await api.get(`/api/admin/${schema.table}`);
+      const [data, mediaData] = await Promise.all([
+        api.get(`/api/admin/${schema.table}`),
+        api.get('/api/admin/media')
+      ]);
       setRecords(data);
-      
-      const mediaData = await api.get('/api/admin/media');
       setMediaList(mediaData);
     } catch (e) {
       console.error(e);
@@ -325,19 +326,21 @@ export default function CRUDManager() {
   };
 
   const loadDropdownOptions = async () => {
-    // Dynamically query referenced tables
-    const dropdowns = {};
-    for (const field of schema.formFields) {
-      if (field.type === 'db_select') {
-        try {
-          const res = await api.get(`/api/admin/${field.dbTable}`);
-          dropdowns[field.dbTable] = res;
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    const dropdownFields = schema.formFields?.filter(f => f.type === 'db_select') || [];
+    if (dropdownFields.length === 0) return;
+
+    try {
+      const results = await Promise.all(
+        dropdownFields.map(field => api.get(`/api/admin/${field.dbTable}`))
+      );
+      const dropdowns = {};
+      dropdownFields.forEach((field, idx) => {
+        dropdowns[field.dbTable] = results[idx];
+      });
+      setDbDropdowns(dropdowns);
+    } catch (e) {
+      console.error(e);
     }
-    setDbDropdowns(dropdowns);
   };
 
   // Filter records by search term

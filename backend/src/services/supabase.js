@@ -16,7 +16,10 @@ export class SupabaseProvider {
       connectionString,
       ssl: {
         rejectUnauthorized: false
-      }
+      },
+      max: 5, // Keep connection count low in serverless
+      idleTimeoutMillis: 1000, // Close idle connections quickly
+      connectionTimeoutMillis: 5000 // Fail fast if connection blocked
     });
 
     const supabaseUrl = env.SUPABASE_URL;
