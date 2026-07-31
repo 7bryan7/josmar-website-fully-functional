@@ -54,7 +54,7 @@ export async function handleAdminRoutes(request, env, url) {
       const projectsCount = await db.get('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL');
       const servicesCount = await db.get('SELECT COUNT(*) as count FROM services WHERE deleted_at IS NULL');
       const messagesCount = await db.get('SELECT COUNT(*) as count FROM contact_messages WHERE is_read = 0');
-      const applicationsCount = await db.get('SELECT COUNT(*) as count FROM applications WHERE status = "pending"');
+      const applicationsCount = await db.get("SELECT COUNT(*) as count FROM applications WHERE status = 'pending'");
       const mediaCount = await db.get('SELECT COUNT(*) as count FROM media WHERE deleted_at IS NULL');
 
       const recentMessages = await db.query('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 5');

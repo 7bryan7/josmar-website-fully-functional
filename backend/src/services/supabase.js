@@ -124,17 +124,42 @@ export class SupabaseProvider {
       },
 
       setup: async (username, email, password) => {
-        const { data, error } = await this.supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { username }
-          }
-        });
-        if (error) throw error;
-        if (!data.user) throw new Error('User creation failed in Supabase');
+        let signUpData = null;
+        let signUpError = null;
 
-        const id = data.user.id;
+        try {
+          // Attempt to use admin API to create and auto-confirm the user (requires service role key)
+          if (this.supabase.auth.admin) {
+            const { data, error } = await this.supabase.auth.admin.createUser({
+              email,
+              password,
+              email_confirm: true,
+              user_metadata: { username }
+            });
+            signUpData = data;
+            signUpError = error;
+          }
+        } catch (adminErr) {
+          console.warn('[Supabase Auth] admin.createUser failed, falling back to signUp:', adminErr);
+        }
+
+        // Fall back to standard signUp if admin API is unavailable or returns an error
+        if (signUpError || !signUpData || !signUpData.user) {
+          const { data, error } = await this.supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { username }
+            }
+          });
+          signUpData = data;
+          signUpError = error;
+          if (signUpError) throw signUpError;
+        }
+
+        if (!signUpData.user) throw new Error('User creation failed in Supabase');
+
+        const id = signUpData.user.id;
         await this.db.run(
           'INSERT INTO users (id, username, password_hash, email, role) VALUES (?, ?, ?, ?, ?)',
           [id, username, 'SUPABASE_AUTH', email, 'admin']

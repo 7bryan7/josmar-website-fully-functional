@@ -183,7 +183,7 @@ export async function handlePublicRoutes(request, env, url) {
   if (method === 'GET' && path.startsWith('/api/public/projects/')) {
     try {
       const slug = path.substring('/api/public/projects/'.length);
-      const project = await db.get('SELECT * FROM projects WHERE seo_slug = ? AND status = "published" AND deleted_at IS NULL', [slug]);
+      const project = await db.get("SELECT * FROM projects WHERE seo_slug = ? AND status = 'published' AND deleted_at IS NULL", [slug]);
       
       if (!project) {
         return new Response(JSON.stringify({ error: 'Project not found' }), { status: 404, headers: corsHeaders });
@@ -251,7 +251,7 @@ export async function handlePublicRoutes(request, env, url) {
       const category = url.searchParams.get('category_id');
       const search = url.searchParams.get('search');
 
-      const albums = await db.query('SELECT a.*, m.path as cover_path FROM gallery_albums a LEFT JOIN media m ON a.cover_media_id = m.id WHERE a.status = "published" AND a.deleted_at IS NULL ORDER BY a.display_order ASC');
+      const albums = await db.query("SELECT a.*, m.path as cover_path FROM gallery_albums a LEFT JOIN media m ON a.cover_media_id = m.id WHERE a.status = 'published' AND a.deleted_at IS NULL ORDER BY a.display_order ASC");
       
       let queryStr = `
         SELECT g.*, m.path, m.name, m.alt_text, m.caption, m.size, c.name as category_name 
@@ -289,7 +289,7 @@ export async function handlePublicRoutes(request, env, url) {
   // 8. Careers (Job Openings)
   if (method === 'GET' && path === '/api/public/careers') {
     try {
-      const res = await db.query('SELECT * FROM careers WHERE status = "published" AND deleted_at IS NULL ORDER BY display_order ASC');
+      const res = await db.query("SELECT * FROM careers WHERE status = 'published' AND deleted_at IS NULL ORDER BY display_order ASC");
       return new Response(JSON.stringify(res.results), { status: 200, headers: corsHeaders });
     } catch (e) {
       return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
