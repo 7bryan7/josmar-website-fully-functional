@@ -134,59 +134,63 @@ export default function Blog() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {currentPosts.map((post) => {
-                  let text = post.content.replace(/<[^>]*>/g, '');
-                  if (text.length > 130) text = text.substring(0, 130) + '...';
-
-                  return (
-                    <div key={post.id} className="card-premium group flex flex-col justify-between h-full bg-white">
-                      <div>
-                        {post.featured_image_path && (
-                          <div className="h-48 overflow-hidden bg-slate-100">
-                            <img 
-                              src={`/media/${post.featured_image_path}`} 
-                              alt={post.title} 
-                              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-                            />
+                {currentPosts.length === 0 ? (
+                  <div className="col-span-1 md:col-span-3 text-center py-20 text-slate-500 font-medium bg-white rounded-2xl border border-slate-100 border-dashed">
+                    No data available for now
+                  </div>
+                ) : (
+                  currentPosts.map((post) => {
+                    let text = post.content.replace(/<[^>]*>/g, '');
+                    if (text.length > 130) text = text.substring(0, 130) + '...';
+  
+                    return (
+                      <div key={post.id} className="card-premium group flex flex-col justify-between h-full bg-white">
+                        <div>
+                          {post.featured_image_path ? (
+                            <div className="h-48 overflow-hidden bg-slate-100">
+                              <img 
+                                src={`/media/${post.featured_image_path}`} 
+                                alt={post.title} 
+                                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-48 flex items-center justify-center text-slate-400 text-sm font-semibold bg-slate-100">
+                              No article image available
+                            </div>
+                          )}
+                          <div className="p-6">
+                            <span className="text-accent-500 text-[10px] font-bold uppercase tracking-wider">{post.category_name}</span>
+                            <h3 className="font-bold text-lg text-primary-900 mt-2 mb-3 leading-snug line-clamp-2 group-hover:text-accent-500 transition-colors">
+                              {post.title}
+                            </h3>
+                            <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
+                              {text}
+                            </p>
                           </div>
-                        )}
-                        <div className="p-6">
-                          <span className="text-accent-500 text-[10px] font-bold uppercase tracking-wider">{post.category_name}</span>
-                          <h3 className="font-bold text-lg text-primary-900 mt-2 mb-3 leading-snug line-clamp-2 group-hover:text-accent-500 transition-colors">
-                            {post.title}
-                          </h3>
-                          <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
-                            {text}
-                          </p>
+                        </div>
+  
+                        <div className="px-6 pb-6 pt-2 flex justify-between items-center text-xs text-slate-400 font-semibold border-t border-slate-50 mt-4 pt-4">
+                          <span>By {post.author_name || 'Admin'}</span>
+                          <Link 
+                            to={`/blog/${post.seo_url}`} 
+                            className="text-accent-500 hover:text-accent-600 font-bold"
+                          >
+                            Read Article &rarr;
+                          </Link>
                         </div>
                       </div>
-
-                      <div className="px-6 pb-6 pt-2 flex justify-between items-center text-xs text-slate-400 font-semibold border-t border-slate-50 mt-4 pt-4">
-                        <span>By {post.author_name || 'Admin'}</span>
-                        <Link 
-                          to={`/blog/${post.seo_url}`} 
-                          className="text-accent-500 hover:text-accent-600 font-bold"
-                        >
-                          Read Article &rarr;
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
-
+  
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
               />
             </>
-          )}
-
-          {!loading && posts.length === 0 && (
-            <div className="text-center py-20 text-slate-500 font-semibold">
-              No news or insights published yet.
-            </div>
           )}
         </div>
       </section>

@@ -69,8 +69,8 @@ export default function Services() {
                 {svc.image_path ? (
                   <img src={`/media/${svc.image_path}`} alt={svc.title} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold uppercase">
-                    {svc.title.substring(0, 2)}
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium text-sm">
+                    No service image available
                   </div>
                 )}
               </div>
@@ -102,8 +102,8 @@ export default function Services() {
           ))}
 
           {services.length === 0 && (
-            <div className="text-center py-12 text-slate-500 font-medium">
-              No services are currently published. Check back later!
+            <div className="text-center py-20 text-slate-500 font-medium bg-white rounded-2xl border border-slate-100 border-dashed">
+              No data available for now
             </div>
           )}
         </div>

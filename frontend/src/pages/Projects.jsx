@@ -123,53 +123,53 @@ export default function Projects() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {projects.map((proj) => (
-                <div key={proj.id} className="card-premium group flex flex-col justify-between h-full bg-white">
-                  <div>
-                    <div className="h-48 overflow-hidden bg-slate-100 relative">
-                      {proj.primary_image_path ? (
-                        <img 
-                          src={`/media/${proj.primary_image_path}`} 
-                          alt={proj.name} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-semibold">
-                          No Image
-                        </div>
-                      )}
-                      <span className="absolute top-4 left-4 bg-primary-900/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        {proj.category}
-                      </span>
-                    </div>
-
-                    <div className="p-6">
-                      <h3 className="font-bold text-lg text-primary-900 mb-2 truncate group-hover:text-accent-500 transition-colors">
-                        {proj.name}
-                      </h3>
-                      <p className="text-slate-400 text-xs font-semibold mb-3">Client: {proj.client}</p>
-                      <p className="text-slate-600 text-sm line-clamp-3 leading-relaxed">
-                        {proj.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="px-6 pb-6 pt-2">
-                    <Link 
-                      to={`/projects/${proj.seo_slug}`} 
-                      className="text-accent-500 hover:text-accent-600 font-semibold text-sm inline-flex items-center gap-1"
-                    >
-                      View Project Detail &rarr;
-                    </Link>
-                  </div>
+              {projects.length === 0 ? (
+                <div className="col-span-1 md:col-span-3 text-center py-20 text-slate-500 font-medium bg-white rounded-2xl border border-slate-100 border-dashed">
+                  No data available for now
                 </div>
-              ))}
-            </div>
-          )}
-
-          {!loading && projects.length === 0 && (
-            <div className="text-center py-20 text-slate-500 font-semibold">
-              No engineering projects found matching the criteria.
+              ) : (
+                projects.map((proj) => (
+                  <div key={proj.id} className="card-premium group flex flex-col justify-between h-full bg-white">
+                    <div>
+                      <div className="h-48 overflow-hidden bg-slate-100 relative">
+                        {proj.primary_image_path ? (
+                          <img 
+                            src={`/media/${proj.primary_image_path}`} 
+                            alt={proj.name} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-semibold bg-slate-800/50">
+                            No project image available
+                          </div>
+                        )}
+                        <span className="absolute top-4 left-4 bg-primary-900/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                          {proj.category}
+                        </span>
+                      </div>
+  
+                      <div className="p-6">
+                        <h3 className="font-bold text-lg text-primary-900 mb-2 truncate group-hover:text-accent-500 transition-colors">
+                          {proj.name}
+                        </h3>
+                        <p className="text-slate-400 text-xs font-semibold mb-3">Client: {proj.client}</p>
+                        <p className="text-slate-600 text-sm line-clamp-3 leading-relaxed">
+                          {proj.description}
+                        </p>
+                      </div>
+                    </div>
+  
+                    <div className="px-6 pb-6 pt-2">
+                      <Link 
+                        to={`/projects/${proj.seo_slug}`} 
+                        className="text-accent-500 hover:text-accent-600 font-semibold text-sm inline-flex items-center gap-1"
+                      >
+                        View Project Detail &rarr;
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>

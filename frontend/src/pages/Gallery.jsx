@@ -119,39 +119,47 @@ export default function Gallery() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {filteredImages.map((img, idx) => (
-              <div 
-                key={img.id}
-                onClick={() => openLightbox(idx)}
-                className="card-premium group h-60 overflow-hidden bg-slate-100 cursor-zoom-in relative"
-              >
-                <img
-                  src={`/media/${img.path}`}
-                  alt={img.alt_text || 'Gallery Image'}
-                  loading="lazy" // Native browser lazy loading
-                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-                />
-                
-                {/* Overlay Text */}
-                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white">
-                  {img.category_name && (
-                    <span className="text-accent-300 text-[9px] uppercase tracking-wider font-bold mb-1">{img.category_name}</span>
-                  )}
-                  <h4 className="font-bold text-sm truncate">{img.name}</h4>
-                  {img.caption && (
-                    <p className="text-slate-300 text-xs line-clamp-2 mt-1 leading-normal">{img.caption}</p>
-                  )}
-                </div>
+            {filteredImages.length === 0 ? (
+              <div className="col-span-full text-center py-20 text-slate-500 font-medium bg-white rounded-2xl border border-slate-100 border-dashed">
+                No data available for now
               </div>
-            ))}
+            ) : (
+              filteredImages.map((img, idx) => (
+                <div 
+                  key={img.id}
+                  onClick={() => openLightbox(idx)}
+                  className="card-premium group h-60 overflow-hidden bg-slate-100 cursor-zoom-in relative"
+                >
+                  {img.path ? (
+                    <img
+                      src={`/media/${img.path}`}
+                      alt={img.alt_text || 'Gallery Image'}
+                      loading="lazy" // Native browser lazy loading
+                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold bg-slate-100">
+                      No gallery image available
+                    </div>
+                  )}
+                  
+                  {/* Overlay Text */}
+                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white">
+                    {img.category_name && (
+                      <span className="text-accent-300 text-[9px] uppercase tracking-wider font-bold mb-1">{img.category_name}</span>
+                    )}
+                    <h4 className="font-bold text-sm truncate">{img.name}</h4>
+                    {img.caption && (
+                      <p className="text-slate-300 text-xs line-clamp-2 mt-1 leading-normal">{img.caption}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
-        {!loading && filteredImages.length === 0 && (
-          <div className="text-center py-20 text-slate-400 font-semibold bg-white rounded-2xl border border-slate-100">
-            No gallery images found matching the criteria.
-          </div>
-        )}
+
       </div>
 
       {/* Lightbox full screen zoom */}

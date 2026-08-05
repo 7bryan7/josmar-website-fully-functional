@@ -141,8 +141,8 @@ export default function Careers() {
           ))}
 
           {openings.length === 0 && (
-            <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 text-slate-400 font-semibold">
-              There are currently no active job openings. Check back soon or send your resume to careers@josmar.com!
+            <div className="text-center py-20 text-slate-500 font-medium bg-white rounded-2xl border border-slate-100 border-dashed">
+              No data available for now
             </div>
           )}
         </div>

@@ -74,7 +74,7 @@ export default function Credentials() {
                       className="w-full h-full object-cover group-hover:opacity-95 transition-opacity" 
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-semibold uppercase">Certificate</div>
+                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-xs text-slate-400 font-medium">No credential image available</div>
                   )}
                   <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
                     View
@@ -129,8 +129,8 @@ export default function Credentials() {
             ))}
 
             {global_certifications.length === 0 && (
-              <div className="col-span-full text-center py-10 bg-white rounded-xl text-slate-400 text-sm font-semibold border border-slate-100">
-                No institutional certifications listed.
+              <div className="col-span-full text-center py-20 bg-white rounded-2xl border border-slate-100 border-dashed text-slate-500 font-medium">
+                No data available for now
               </div>
             )}
           </div>
@@ -158,7 +158,7 @@ export default function Credentials() {
                         className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" 
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold text-xs">No Image</div>
+                      <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 font-medium text-xs">No certificate image available</div>
                     )}
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
                       Zoom Certificate
@@ -174,8 +174,8 @@ export default function Credentials() {
             ))}
 
             {other_certificates.length === 0 && (
-              <div className="col-span-full text-center py-10 bg-white rounded-xl text-slate-400 text-sm font-semibold border border-slate-100">
-                No technical certificates listed.
+              <div className="col-span-full text-center py-20 bg-white rounded-2xl border border-slate-100 border-dashed text-slate-500 font-medium">
+                No data available for now
               </div>
             )}
           </div>

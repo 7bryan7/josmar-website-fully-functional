@@ -144,22 +144,8 @@ export default function Home() {
   if (sections.length === 0) {
     return (
       <div className="max-w-4xl mx-auto my-16 px-4 text-center">
-        <div className="bg-sky-50 border border-sky-200 rounded-2xl p-8 shadow-sm">
-          <h2 className="text-sky-900 font-bold text-lg mb-2">Homepage Under Construction</h2>
-          <p className="text-slate-600 text-sm mb-6">
-            The system connected to the database successfully, but there are no active sections configured for the homepage.
-          </p>
-          <p className="text-xs text-slate-500 mb-6 font-semibold">
-            If you are the administrator, log in to the CMS Control Panel, configure your homepage components (such as Hero, Intro, capabilities), and publish them.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link 
-              to="/admin" 
-              className="bg-accent-500 text-white font-bold text-xs px-6 py-2.5 rounded-lg hover:bg-accent-600 transition-colors"
-            >
-              Log In to CMS Dashboard
-            </Link>
-          </div>
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 shadow-sm">
+          <p className="text-slate-500 font-medium">No data available for now</p>
         </div>
       </div>
     );
@@ -172,11 +158,11 @@ export default function Home() {
 
     switch (sKey) {
       case 'hero': {
-        // Dynamic image settings from global Settings context, falling back to premium Unsplash engineering photos
+        // Dynamic image settings from global Settings context, without hardcoded fallback URLs
         const generalSettings = globalSettings?.general || {};
-        const img1 = generalSettings.hero_image_1 ? `/media/${generalSettings.hero_image_1}` : "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=600&q=80";
-        const img2 = generalSettings.hero_image_2 ? `/media/${generalSettings.hero_image_2}` : "https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?auto=format&fit=crop&w=600&q=80";
-        const img3 = generalSettings.hero_image_3 ? `/media/${generalSettings.hero_image_3}` : "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80";
+        const img1 = generalSettings.hero_image_1 ? `/media/${generalSettings.hero_image_1}` : null;
+        const img2 = generalSettings.hero_image_2 ? `/media/${generalSettings.hero_image_2}` : null;
+        const img3 = generalSettings.hero_image_3 ? `/media/${generalSettings.hero_image_3}` : null;
 
         return (
           <section 
@@ -225,7 +211,13 @@ export default function Home() {
                     {/* Back / Left Image Wrapper (Civil construction) */}
                     <div className="absolute top-12 left-0 animate-float-slow z-10 hover:z-30">
                       <div className="w-[240px] sm:w-[290px] aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-950/80 bg-slate-800 -rotate-6 hover:rotate-0 hover:scale-110 hover:shadow-accent-500/20 transition-all duration-500 ease-out group cursor-pointer">
-                        <img src={img1} alt="Structural construction" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                        {img1 ? (
+                          <img src={img1} alt="Structural construction" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center p-4 text-center bg-slate-800/50">
+                            <span className="text-slate-500 text-xs font-medium">No hero image available</span>
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                           <span className="text-white text-xs font-bold tracking-wider uppercase">Infrastructure</span>
                         </div>
@@ -235,7 +227,13 @@ export default function Home() {
                     {/* Top / Right Image Wrapper (CAD blueprints) */}
                     <div className="absolute top-2 right-0 animate-float-delayed z-20 hover:z-30">
                       <div className="w-[200px] sm:w-[240px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-950/80 bg-slate-800 rotate-6 hover:rotate-0 hover:scale-110 hover:shadow-accent-500/20 transition-all duration-500 ease-out group cursor-pointer">
-                        <img src={img2} alt="Engineering design blueprints" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                        {img2 ? (
+                          <img src={img2} alt="Engineering design blueprints" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center p-4 text-center bg-slate-800/50">
+                            <span className="text-slate-500 text-xs font-medium">No hero image available</span>
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                           <span className="text-white text-xs font-bold tracking-wider uppercase">Planning & Design</span>
                         </div>
@@ -245,7 +243,13 @@ export default function Home() {
                     {/* Front / Bottom Center Image Wrapper (Completed structure) */}
                     <div className="absolute bottom-4 left-16 sm:left-24 animate-float-fast z-25 hover:z-30">
                       <div className="w-[220px] sm:w-[270px] aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-950/80 bg-slate-800 rotate-2 hover:rotate-0 hover:scale-110 hover:shadow-accent-500/20 transition-all duration-500 ease-out group cursor-pointer">
-                        <img src={img3} alt="Completed modern project structure" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                        {img3 ? (
+                          <img src={img3} alt="Completed modern project structure" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center p-4 text-center bg-slate-800/50">
+                            <span className="text-slate-500 text-xs font-medium">No hero image available</span>
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                           <span className="text-white text-xs font-bold tracking-wider uppercase">Engineering</span>
                         </div>
@@ -332,20 +336,26 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {services.map((svc) => (
-                      <div key={svc.id} className="card-premium flex flex-col justify-between p-6">
-                        <div>
-                          <div className="h-12 w-12 bg-primary-50 rounded-xl text-primary-900 flex items-center justify-center mb-6">
-                            <span className="font-semibold text-lg">{svc.title.substring(0, 2)}</span>
-                          </div>
-                          <h3 className="font-bold text-lg text-primary-900 mb-3">{svc.title}</h3>
-                          <p className="text-slate-600 text-sm line-clamp-3 mb-6">{svc.description}</p>
-                        </div>
-                        <Link to={`/services#${svc.seo_url}`} className="text-accent-500 hover:text-accent-600 font-semibold text-sm inline-flex items-center gap-1">
-                          Read More &rarr;
-                        </Link>
+                    {services.length === 0 ? (
+                      <div className="col-span-1 md:col-span-3 flex items-center justify-center p-12 bg-slate-50/50 rounded-2xl border border-slate-100 border-dashed">
+                        <span className="text-slate-500 font-medium">No data available for now</span>
                       </div>
-                    ))}
+                    ) : (
+                      services.map((svc) => (
+                        <div key={svc.id} className="card-premium flex flex-col justify-between p-6">
+                          <div>
+                            <div className="h-12 w-12 bg-primary-50 rounded-xl text-primary-900 flex items-center justify-center mb-6">
+                              <span className="font-semibold text-lg">{svc.title.substring(0, 2)}</span>
+                            </div>
+                            <h3 className="font-bold text-lg text-primary-900 mb-3">{svc.title}</h3>
+                            <p className="text-slate-600 text-sm line-clamp-3 mb-6">{svc.description}</p>
+                          </div>
+                          <Link to={`/services#${svc.seo_url}`} className="text-accent-500 hover:text-accent-600 font-semibold text-sm inline-flex items-center gap-1">
+                            Read More &rarr;
+                          </Link>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </section>
@@ -374,32 +384,38 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {projects.map((proj) => (
-                      <div key={proj.id} className="card-premium group">
-                        <div className="h-48 overflow-hidden bg-slate-200 relative">
-                          {proj.primary_image_path ? (
-                            <img 
-                              src={`/media/${proj.primary_image_path}`} 
-                              alt={proj.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">No Image</div>
-                          )}
-                          <span className="absolute top-4 left-4 bg-primary-900/90 text-white text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                            {proj.category}
-                          </span>
-                        </div>
-                        <div className="p-6">
-                          <h3 className="font-bold text-lg text-primary-900 mb-2 truncate">{proj.name}</h3>
-                          <p className="text-slate-400 text-xs font-semibold mb-3">Client: {proj.client}</p>
-                          <p className="text-slate-600 text-sm line-clamp-2 mb-4">{proj.description}</p>
-                          <Link to={`/projects/${proj.seo_slug}`} className="text-accent-500 hover:text-accent-600 font-semibold text-sm inline-flex items-center gap-1">
-                            View Case Study &rarr;
-                          </Link>
-                        </div>
+                    {projects.length === 0 ? (
+                      <div className="col-span-1 md:col-span-3 flex items-center justify-center p-12 bg-blue-50/50 rounded-2xl border border-blue-100 border-dashed">
+                        <span className="text-slate-500 font-medium">No data available for now</span>
                       </div>
-                    ))}
+                    ) : (
+                      projects.map((proj) => (
+                        <div key={proj.id} className="card-premium group">
+                          <div className="h-48 overflow-hidden bg-slate-200 relative">
+                            {proj.primary_image_path ? (
+                              <img 
+                                src={`/media/${proj.primary_image_path}`} 
+                                alt={proj.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-slate-800/50 text-slate-500 text-sm font-medium">No project image available</div>
+                            )}
+                            <span className="absolute top-4 left-4 bg-primary-900/90 text-white text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                              {proj.category}
+                            </span>
+                          </div>
+                          <div className="p-6">
+                            <h3 className="font-bold text-lg text-primary-900 mb-2 truncate">{proj.name}</h3>
+                            <p className="text-slate-400 text-xs font-semibold mb-3">Client: {proj.client}</p>
+                            <p className="text-slate-600 text-sm line-clamp-2 mb-4">{proj.description}</p>
+                            <Link to={`/projects/${proj.seo_slug}`} className="text-accent-500 hover:text-accent-600 font-semibold text-sm inline-flex items-center gap-1">
+                              View Case Study &rarr;
+                            </Link>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </section>
@@ -446,27 +462,33 @@ export default function Home() {
                     <p className="text-slate-500 mt-2">{section.subtitle}</p>
                   </div>
 
-                  <Carousel
-                    items={testimonials}
-                    renderItem={(item) => (
-                      <div className="card-premium p-6 w-[280px] md:w-[350px] flex flex-col justify-between min-h-[220px]">
-                        <p className="text-slate-600 text-sm italic leading-relaxed mb-6">&ldquo;{item.testimonial_text}&rdquo;</p>
-                        <div className="flex items-center gap-3">
-                          {item.avatar_path ? (
-                            <img src={`/media/${item.avatar_path}`} alt={item.client_name} className="h-10 w-10 rounded-full object-cover" />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-sm text-slate-500">
-                              {item.client_name.substring(0, 1)}
+                  {testimonials.length === 0 ? (
+                    <div className="flex items-center justify-center p-12 bg-emerald-50/50 rounded-2xl border border-emerald-100 border-dashed mt-8">
+                      <span className="text-slate-500 font-medium">No data available for now</span>
+                    </div>
+                  ) : (
+                    <Carousel
+                      items={testimonials}
+                      renderItem={(item) => (
+                        <div className="card-premium p-6 w-[280px] md:w-[350px] flex flex-col justify-between min-h-[220px]">
+                          <p className="text-slate-600 text-sm italic leading-relaxed mb-6">&ldquo;{item.testimonial_text}&rdquo;</p>
+                          <div className="flex items-center gap-3">
+                            {item.avatar_path ? (
+                              <img src={`/media/${item.avatar_path}`} alt={item.client_name} className="h-10 w-10 rounded-full object-cover" />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-sm text-slate-500">
+                                {item.client_name.substring(0, 1)}
+                              </div>
+                            )}
+                            <div>
+                              <h4 className="font-bold text-sm text-primary-900">{item.client_name}</h4>
+                              <p className="text-slate-400 text-xs">{item.client_role} {item.company_name && `at ${item.company_name}`}</p>
                             </div>
-                          )}
-                          <div>
-                            <h4 className="font-bold text-sm text-primary-900">{item.client_name}</h4>
-                            <p className="text-slate-400 text-xs">{item.client_role} {item.company_name && `at ${item.company_name}`}</p>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  />
+                      )}
+                    />
+                  )}
                 </div>
               </section>
             </ScrollReveal>
@@ -484,15 +506,21 @@ export default function Home() {
                 <div className="px-6 sm:px-12 lg:px-16">
                   <h2 className="text-slate-400 font-bold text-sm uppercase tracking-wider mb-8 text-center">{section.title}</h2>
                   <div className="flex flex-wrap items-center justify-center gap-12 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300">
-                    {clients.map((client) => (
-                      <div key={client.id} className="h-12 w-28 flex items-center justify-center">
-                        {client.logo_path ? (
-                          <img src={`/media/${client.logo_path}`} alt={client.name} className="max-h-full max-w-full object-contain" />
-                        ) : (
-                          <span className="font-semibold text-slate-600 text-md">{client.name}</span>
-                        )}
+                    {clients.length === 0 ? (
+                      <div className="w-full flex items-center justify-center p-8 bg-slate-50/50 rounded-2xl border border-slate-100 border-dashed">
+                        <span className="text-slate-500 font-medium">No data available for now</span>
                       </div>
-                    ))}
+                    ) : (
+                      clients.map((client) => (
+                        <div key={client.id} className="h-12 w-28 flex items-center justify-center">
+                          {client.logo_path ? (
+                            <img src={`/media/${client.logo_path}`} alt={client.name} className="max-h-full max-w-full object-contain" />
+                          ) : (
+                            <span className="font-semibold text-slate-600 text-md">{client.name}</span>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </section>
@@ -521,27 +549,35 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {news.map((item) => (
-                      <div key={item.id} className="card-premium flex flex-col justify-between">
-                        <div>
-                          {item.featured_image_path && (
-                            <div className="h-48 overflow-hidden bg-slate-200">
-                              <img src={`/media/${item.featured_image_path}`} alt={item.title} className="w-full h-full object-cover" />
+                    {news.length === 0 ? (
+                      <div className="col-span-1 md:col-span-3 flex items-center justify-center p-12 bg-indigo-50/50 rounded-2xl border border-indigo-100 border-dashed">
+                        <span className="text-slate-500 font-medium">No data available for now</span>
+                      </div>
+                    ) : (
+                      news.map((item) => (
+                        <div key={item.id} className="card-premium flex flex-col justify-between">
+                          <div>
+                            {item.featured_image_path ? (
+                              <div className="h-48 overflow-hidden bg-slate-200">
+                                <img src={`/media/${item.featured_image_path}`} alt={item.title} className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className="h-48 flex items-center justify-center bg-slate-800/50 text-slate-500 text-sm font-medium">No article image available</div>
+                            )}
+                            <div className="p-6">
+                              <span className="text-accent-500 text-xs font-semibold uppercase tracking-wider">{item.category_name}</span>
+                              <h3 className="font-bold text-lg text-primary-900 mt-2 mb-3 leading-snug line-clamp-2">{item.title}</h3>
+                              <p className="text-slate-600 text-sm line-clamp-3">{item.excerpt}</p>
                             </div>
-                          )}
-                          <div className="p-6">
-                            <span className="text-accent-500 text-xs font-semibold uppercase tracking-wider">{item.category_name}</span>
-                            <h3 className="font-bold text-lg text-primary-900 mt-2 mb-3 leading-snug line-clamp-2">{item.title}</h3>
-                            <p className="text-slate-600 text-sm line-clamp-3">{item.excerpt}</p>
+                          </div>
+                          <div className="px-6 pb-6 pt-2">
+                            <Link to={`/blog/${item.seo_url}`} className="text-accent-500 hover:text-accent-600 font-semibold text-sm">
+                              Read Article &rarr;
+                            </Link>
                           </div>
                         </div>
-                        <div className="px-6 pb-6 pt-2">
-                          <Link to={`/blog/${item.seo_url}`} className="text-accent-500 hover:text-accent-600 font-semibold text-sm">
-                            Read Article &rarr;
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               </section>
