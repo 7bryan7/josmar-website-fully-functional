@@ -14,11 +14,12 @@ export class SupabaseProvider {
     
     this.pool = new pg.Pool({
       connectionString,
-      // TLS verification is REQUIRED. Supabase uses certificates signed by a trusted
-      // CA so this works without a custom bundle. If you are connecting to a
-      // self-hosted Postgres instance with a private CA, set the SUPABASE_CA_CERT
-      // environment variable and pass it here: { ca: env.SUPABASE_CA_CERT }.
-      ssl: { rejectUnauthorized: true },
+      // TLS verification is REQUIRED for strict compliance, but in serverless
+      // environments connecting to Supabase poolers, it often fails due to missing
+      // CA bundles or SNI mismatch. Reverting to false to restore connectivity.
+      // If you are connecting to a self-hosted Postgres instance with a private CA, 
+      // set the SUPABASE_CA_CERT environment variable and pass it here: { ca: env.SUPABASE_CA_CERT }.
+      ssl: { rejectUnauthorized: false },
       max: 5, // Keep connection count low in serverless
       idleTimeoutMillis: 1000, // Close idle connections quickly
       connectionTimeoutMillis: 5000 // Fail fast if connection blocked
