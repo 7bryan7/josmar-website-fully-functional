@@ -3,6 +3,8 @@ import { handleAuthRoutes } from './routes/auth.js';
 import { handlePublicRoutes } from './routes/public.js';
 import { handleAdminRoutes } from './routes/admin.js';
 import { handleMediaRoutes } from './routes/media.js';
+import { INLINE_MIME_TYPES } from './validation.js';
+import { getCorsHeaders } from './cors.js';
 
 import { getServices } from './services/index.js';
 
@@ -15,13 +17,8 @@ export default {
     const path = url.pathname;
     const method = request.method;
 
-    // CORS Headers
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    };
+    // CORS — origin-aware, no wildcard
+    const corsHeaders = getCorsHeaders(request, env);
 
     if (method === 'OPTIONS') {
       return new Response(null, {
@@ -30,25 +27,48 @@ export default {
       });
     }
 
-    // Serve media files directly from storage proxy
+    // ── Media file proxy ───────────────────────────────────────────────────
+    // Serves files from R2 / Supabase Storage.
+    // Private storage path prefixes require a valid admin JWT.
     if (method === 'GET' && path.startsWith('/media/')) {
       try {
-        const key = decodeURIComponent(path.substring(7));
+        const rawKey = decodeURIComponent(path.substring(7));
+
+        // Reject path-traversal attempts (e.g. ../../etc/passwd)
+        if (rawKey.includes('..') || rawKey.startsWith('/')) {
+          return new Response('Bad Request', { status: 400 });
+        }
+
+        // Paths under these prefixes are private; require admin authentication.
+        const PRIVATE_PREFIXES = ['resumes/'];
+        const isPrivate = PRIVATE_PREFIXES.some(p => rawKey.startsWith(p));
+        if (isPrivate) {
+          const authError = await authMiddleware(request, env);
+          if (authError) return authError; // returns 401 JSON response
+        }
+
         let mediaItem = null;
-        
         try {
-          mediaItem = await services.storage.download(key);
-        } catch (storageErr) {
-          // If not found by key directly, resolve using database ID mapping
+          mediaItem = await services.storage.download(rawKey);
+        } catch (_storageErr) {
+          // Key not found directly — attempt DB id → path resolution
           try {
             const { Database } = await import('./db.js');
             const db = new Database(services.db);
-            const dbMedia = await db.get('SELECT path FROM media WHERE id = ?', [key]);
-            if (dbMedia && dbMedia.path) {
+            const dbMedia = await db.get('SELECT path FROM media WHERE id = ?', [rawKey]);
+            if (dbMedia?.path) {
+              // Repeat the private-prefix check for the resolved path
+              const resolvedIsPrivate = PRIVATE_PREFIXES.some(p => dbMedia.path.startsWith(p));
+              if (resolvedIsPrivate && !request.user) {
+                // authMiddleware already ran above for private requests;
+                // if request.user is still unset the original key was public
+                // but the resolved path is private — deny.
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+              }
               mediaItem = await services.storage.download(dbMedia.path);
             }
           } catch (dbErr) {
-            console.error('Failed to resolve media ID in database', dbErr);
+            console.error('[media proxy] DB resolution error:', dbErr);
           }
         }
 
@@ -56,14 +76,28 @@ export default {
           return new Response('File Not Found', { status: 404 });
         }
 
+        const servedType = mediaItem.contentType || 'application/octet-stream';
         const headers = new Headers();
-        headers.set('Content-Type', mediaItem.contentType);
+        headers.set('Content-Type', servedType);
+        headers.set('X-Content-Type-Options', 'nosniff'); // prevent MIME sniffing
         headers.set('Access-Control-Allow-Origin', '*');
-        headers.set('Cache-Control', 'public, max-age=31536000');
-        
+
+        if (isPrivate) {
+          // Private files must not be cached by CDNs or shared caches.
+          headers.set('Cache-Control', 'private, no-store');
+        } else {
+          headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+
+        // Force download for non-image types (prevents inline XSS for PDFs, etc.)
+        if (!INLINE_MIME_TYPES.has(servedType)) {
+          headers.set('Content-Disposition', 'attachment');
+        }
+
         return new Response(mediaItem.body, { headers });
       } catch (e) {
-        return new Response('Error retrieving file: ' + e.message, { status: 500 });
+        console.error('[media proxy] Error:', e);
+        return new Response('Error retrieving file', { status: 500 });
       }
     }
 

@@ -58,9 +58,7 @@ INSERT INTO seo (id, entity_type, entity_id, meta_title, meta_description, canon
 ('seo-static-contact', 'page', 'contact_us', 'Contact Us | Josmar Consulting Engineers', 'Get in touch with our engineering offices in Tech City. Request proposals or consult our team.', '/contact', NULL, 'Contact Josmar Consulting Engineers', 'Request proposals or consult our engineering team.', 'summary_large_image', NULL)
 ON CONFLICT (id) DO NOTHING;
 
--- Seed default admin user (username: admin, password: admin123)
--- In Supabase Auth, this record will link via foreign keys to auth.users.
--- Administrators can also register this manually using the setup form if they prefer to link their own custom accounts.
-INSERT INTO users (id, username, password_hash, email, role) VALUES
-('usr-admin-default', 'admin', 'pbkdf2_sha256$100000$0eadc7ce5ee3d45925f68ba9999aa962$99a89253c43e814ea59a1b84787d3f31ae8efcde2460cdbaf0e3d6bbacdc1c33', 'admin@josmar.com', 'admin')
-ON CONFLICT (id) DO NOTHING;
+-- ⚠️  No default admin user is seeded here for security reasons.
+-- On first deployment, visit /api/auth/setup (GET) to confirm setup is needed,
+-- then POST to /api/auth/setup with your chosen { username, email, password }.
+-- The setup endpoint is a one-time operation and is blocked once any user exists.

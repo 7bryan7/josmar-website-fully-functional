@@ -8,8 +8,15 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
-  const [settings, setSettings] = useState(null);
-  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settings, setSettings] = useState(() => {
+    try {
+      const cached = localStorage.getItem('josmar_settings');
+      return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [settingsLoading, setSettingsLoading] = useState(() => !localStorage.getItem('josmar_settings'));
   const [user, setUser] = useState(api.auth.getUser());
   const [initChecked, setInitChecked] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
@@ -18,6 +25,7 @@ export function AppProvider({ children }) {
     try {
       const data = await api.get('/api/public/settings');
       setSettings(data);
+      localStorage.setItem('josmar_settings', JSON.stringify(data));
     } catch (e) {
       console.error('Failed to load settings', e);
     } finally {
@@ -26,32 +34,33 @@ export function AppProvider({ children }) {
   };
 
   useEffect(() => {
-    fetchSettings();
-    
     // Listen for unauthorized 401 events globally
     const handleUnauthorized = () => {
       setUser(null);
     };
     window.addEventListener('auth:unauthorized', handleUnauthorized);
 
-    // Verify current user session on mount
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => {
-          if (res.status === 401) {
-            localStorage.removeItem('admin_token');
+    // Parallelize initialization requests to avoid sequence blocking.
+    // Auth check verifies current user session using the HttpOnly cookie.
+    Promise.allSettled([
+      fetchSettings(),
+      fetch('/api/auth/me', { credentials: 'include' })
+        .then(async (res) => {
+          if (res.ok) {
+            const data = await res.json();
+            if (data.user && !localStorage.getItem('admin_user')) {
+              localStorage.setItem('admin_user', JSON.stringify(data.user));
+              setUser(data.user);
+            }
+          } else {
             localStorage.removeItem('admin_user');
             setUser(null);
           }
         })
-        .catch(() => {})
-        .finally(() => setInitChecked(true));
-    } else {
-      setInitChecked(true);
-    }
+        .catch(() => {
+          // Network error — leave existing user state untouched
+        })
+    ]).finally(() => setInitChecked(true));
 
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
@@ -295,8 +304,7 @@ function PublicLayout({ children }) {
             <p>{footerSettings.footer_copyright || '© 2026 Josmar Consulting Engineers. All rights reserved.'}</p>
             <div className="flex gap-4">
               <Link to="/privacy-policy" className="hover:underline">Privacy Policy</Link>
-              <Link to="/terms-conditions" className="hover:underline">Terms & Conditions</Link>
-              <Link to="/admin" className="hover:underline text-slate-400 hover:text-white">CMS Admin</Link>
+              <Link to="/terms-conditions" className="hover:underline">Terms &amp; Conditions</Link>
             </div>
           </div>
         </div>

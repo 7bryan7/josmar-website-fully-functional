@@ -1,20 +1,16 @@
 // API Client for Josmar Website & CMS
+// Auth relies exclusively on the HttpOnly cookie set by the backend on login.
+// The JWT is never stored in localStorage (XSS risk) — the browser manages the
+// cookie automatically and forwards it on every same-origin / credentialed request.
 
-const getHeaders = () => {
-  const token = localStorage.getItem('admin_token');
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
-};
+const getHeaders = () => ({
+  'Content-Type': 'application/json',
+});
 
 const handleResponse = async (res) => {
   if (!res.ok) {
     if (res.status === 401) {
-      localStorage.removeItem('admin_token');
+      // Cookie is expired/invalid — clear the display-only user object and signal the app
       localStorage.removeItem('admin_user');
       window.dispatchEvent(new Event('auth:unauthorized'));
     }
@@ -30,6 +26,7 @@ export const api = {
     const res = await fetch(endpoint, {
       method: 'GET',
       headers: getHeaders(),
+      credentials: 'include', // forward the HttpOnly session cookie
     });
     return handleResponse(res);
   },
@@ -40,6 +37,7 @@ export const api = {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include',
     });
     return handleResponse(res);
   },
@@ -50,6 +48,7 @@ export const api = {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include',
     });
     return handleResponse(res);
   },
@@ -59,21 +58,18 @@ export const api = {
     const res = await fetch(endpoint, {
       method: 'DELETE',
       headers: getHeaders(),
+      credentials: 'include',
     });
     return handleResponse(res);
   },
 
   // Upload Media (multipart form data)
+  // Note: Do NOT set Content-Type here — the browser sets it with the correct boundary.
   async uploadMedia(formData) {
-    const token = localStorage.getItem('admin_token');
-    const headers = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
     const res = await fetch('/api/admin/media/upload', {
       method: 'POST',
-      headers,
       body: formData,
+      credentials: 'include',
     });
     return handleResponse(res);
   },
@@ -81,10 +77,10 @@ export const api = {
   // Auth Operations
   auth: {
     async checkSetup() {
-      // Check if setup is needed
+      // Check if setup is needed by probing /api/auth/me
       try {
-        const res = await fetch('/api/auth/me');
-        return res.status === 401; // Setup is not user-auth, it's checked by setup
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        return res.status === 401;
       } catch (e) {
         return false;
       }
@@ -94,12 +90,14 @@ export const api = {
     },
     async login(username, password) {
       const res = await api.post('/api/auth/login', { username, password });
-      localStorage.setItem('admin_token', res.token);
+      // The backend sets an HttpOnly cookie — we only store the non-sensitive
+      // user object in localStorage for display purposes (username, role, etc.).
       localStorage.setItem('admin_user', JSON.stringify(res.user));
       return res.user;
     },
     logout() {
-      localStorage.removeItem('admin_token');
+      // Clear display-only user data; the HttpOnly cookie will expire or be
+      // cleared server-side (add a POST /api/auth/logout endpoint to clear it actively).
       localStorage.removeItem('admin_user');
     },
     getUser() {
@@ -112,8 +110,10 @@ export const api = {
         return null;
       }
     },
+    // Deprecated: the JWT is no longer stored client-side.
+    // Kept as a no-op stub to avoid breaking any callers during migration.
     getToken() {
-      return localStorage.getItem('admin_token');
+      return null;
     }
   }
 };

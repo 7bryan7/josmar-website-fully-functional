@@ -57,15 +57,20 @@ export default async function (req, res) {
     // Build standard Web Request
     const webRequest = new Request(fullUrl, options);
 
-    // Mock Cloudflare Worker env context
+    // Mock Cloudflare Worker env context.
+    // Only pass the specific env vars the handler needs — never spread all of
+    // process.env, which would leak Vercel-internal platform secrets.
     const env = {
-      DATABASE_URL: process.env.DATABASE_URL,
-      SUPABASE_URL: process.env.SUPABASE_URL,
-      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+      DATABASE_URL:            process.env.DATABASE_URL,
+      SUPABASE_URL:            process.env.SUPABASE_URL,
+      SUPABASE_ANON_KEY:       process.env.SUPABASE_ANON_KEY,
       SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET,
-      PROVIDER: process.env.PROVIDER || 'supabase',
-      JWT_SECRET: process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET,
-      ...process.env
+      PROVIDER:                process.env.PROVIDER || 'supabase',
+      JWT_SECRET:              process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET,
+      // ALLOWED_ORIGINS: comma-separated list of permitted request origins.
+      // Set this in the Vercel dashboard (Settings → Environment Variables).
+      // Example: https://josmar.com
+      ALLOWED_ORIGINS:         process.env.ALLOWED_ORIGINS || '',
     };
 
     // Run the main router fetch handler
@@ -96,9 +101,9 @@ export default async function (req, res) {
     }
     res.end();
   } catch (err) {
-    console.error('Serverless bridge error:', err);
+    console.error('[vercel bridge] Unhandled error:', err);
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'Internal Server Error', message: err.message }));
+    res.end(JSON.stringify({ error: 'Internal Server Error' }));
   }
 }

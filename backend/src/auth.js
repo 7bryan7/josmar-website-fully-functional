@@ -96,7 +96,9 @@ export async function authMiddleware(request, env) {
     if (cookieHeader) {
       const tokenCookie = cookieHeader.split(';').find(c => c.trim().startsWith('token='));
       if (tokenCookie) {
-        token = tokenCookie.split('=')[1].trim();
+        // Use substring() instead of split('=')[1] — JWT values may contain '=' padding
+        // characters and split would silently truncate the token, causing verify failures.
+        token = tokenCookie.trim().substring('token='.length);
       }
     }
   }
@@ -119,8 +121,9 @@ export async function authMiddleware(request, env) {
     request.user = user;
     return null; // Proceed
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'Database verification failed: ' + e.message }), {
-      status: 500,
+    console.error('[authMiddleware] Token verification error:', e);
+    return new Response(JSON.stringify({ error: 'Unauthorized: Session verification failed' }), {
+      status: 401,
       headers: { 'Content-Type': 'application/json' }
     });
   }

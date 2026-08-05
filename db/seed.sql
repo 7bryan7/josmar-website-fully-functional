@@ -42,9 +42,10 @@ INSERT OR IGNORE INTO homepage_sections (id, section_key, title, subtitle, is_en
 ('sec-news', 'news', 'Latest Insights & News', 'Stay updated with our recent publications and engineering developments.', 1, 90, 'bg-white', 'py-16', 'fade-up', '{"limit":3}'),
 ('sec-cta', 'cta', 'Ready to Start Your Next Engineering Venture?', 'Contact our engineering team today to request a quote or project evaluation.', 1, 100, 'bg-sky-700', 'py-16', 'fade-in', '{"button_text":"Get In Touch","button_link":"/contact"}');
 
--- Seed default admin user (username: admin, password: admin123)
-INSERT OR IGNORE INTO users (id, username, password_hash, email, role) VALUES
-('usr-admin-default', 'admin', 'pbkdf2_sha256$100000$0eadc7ce5ee3d45925f68ba9999aa962$99a89253c43e814ea59a1b84787d3f31ae8efcde2460cdbaf0e3d6bbacdc1c33', 'admin@josmar.com', 'admin');
+-- ⚠️  No default admin user is seeded here for security reasons.
+-- On first deployment, visit /api/auth/setup (GET) to confirm setup is needed,
+-- then POST to /api/auth/setup with your chosen { username, email, password }.
+-- The setup endpoint is a one-time operation and is blocked once any user exists.
 
 -- Seed static pages SEO defaults
 INSERT OR IGNORE INTO seo (id, entity_type, entity_id, meta_title, meta_description, canonical_url, og_image_media_id, og_title, og_description, twitter_card, schema_json) VALUES

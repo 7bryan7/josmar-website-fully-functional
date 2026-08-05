@@ -1,4 +1,5 @@
 import { Database } from '../db.js';
+import { getCorsHeaders } from '../cors.js';
 
 // Strict whitelist of allowed D1 tables for admin operations
 const ALLOWED_TABLES = [
@@ -27,17 +28,51 @@ const ALLOWED_TABLES = [
   'audit_logs'
 ];
 
+// Explicit safe column projections for sensitive tables.
+// password_hash must NEVER be returned in any API response.
+const SAFE_COLUMNS = {
+  users: 'id, username, email, role, created_at, updated_at, deleted_at',
+};
+
+// Per-table allowlist of columns that may be set by the admin API.
+// Column names are interpolated directly into SQL strings (they cannot be
+// parameterised), so they MUST never originate from unchecked user input.
+// Any key in the request body that is not in this list is silently dropped.
+// System-managed columns (id for UPDATE, created_at, updated_at) are intentionally
+// excluded; they are either handled explicitly by the code or by DB defaults.
+const WRITABLE_COLUMNS = {
+  users:                  ['username', 'email', 'role', 'deleted_at'],
+  media:                  ['name', 'path', 'size', 'mime_type', 'alt_text', 'caption', 'folder', 'thumbnail_path', 'width', 'height', 'deleted_at'],
+  homepage_sections:      ['section_key', 'title', 'subtitle', 'is_enabled', 'display_order', 'background_color', 'background_image_media_id', 'padding_y', 'animation_type', 'settings_json'],
+  settings:               ['value', 'description', 'category'],
+  categories:             ['name', 'type', 'slug', 'deleted_at'],
+  services:               ['title', 'description', 'icon', 'image_media_id', 'brochure_media_id', 'seo_url', 'status', 'display_order', 'deleted_at'],
+  projects:               ['name', 'category', 'client', 'location', 'start_date', 'end_date', 'description', 'status', 'featured_project', 'seo_slug', 'display_order', 'deleted_at'],
+  project_images:         ['project_id', 'media_id', 'is_primary', 'display_order'],
+  project_documents:      ['project_id', 'media_id', 'display_order'],
+  global_certifications:  ['title', 'issuing_organization', 'org_logo_media_id', 'certificate_image_media_id', 'certificate_number', 'issue_date', 'expiry_date', 'credential_url', 'description', 'display_order', 'featured_status', 'active_status', 'deleted_at'],
+  other_certificates:     ['title', 'certificate_image_media_id', 'description', 'category', 'display_order', 'active_status', 'deleted_at'],
+  gallery_albums:         ['name', 'description', 'cover_media_id', 'display_order', 'status', 'deleted_at'],
+  gallery:                ['album_id', 'media_id', 'category_id', 'display_order', 'deleted_at'],
+  testimonials:           ['client_name', 'client_role', 'company_name', 'testimonial_text', 'rating', 'avatar_media_id', 'display_order', 'status', 'deleted_at'],
+  clients:                ['name', 'logo_media_id', 'website_url', 'display_order', 'status', 'deleted_at'],
+  tags:                   ['name', 'slug', 'deleted_at'],
+  blogs:                  ['title', 'content', 'category_id', 'featured_image_media_id', 'seo_url', 'status', 'publish_date', 'author_id', 'deleted_at'],
+  blog_tags:              ['blog_id', 'tag_id'],
+  careers:                ['title', 'location', 'experience', 'description', 'status', 'display_order', 'deleted_at'],
+  applications:           ['career_id', 'applicant_name', 'applicant_email', 'resume_media_id', 'cover_letter', 'status'],
+  contact_messages:       ['name', 'email', 'phone', 'subject', 'message', 'is_read'],
+  seo:                    ['entity_type', 'entity_id', 'meta_title', 'meta_description', 'canonical_url', 'og_image_media_id', 'og_title', 'og_description', 'twitter_card', 'schema_json'],
+  audit_logs:             ['user_id', 'action', 'entity_type', 'entity_id', 'details'],
+};
+
 export async function handleAdminRoutes(request, env, url) {
   const db = new Database(request.services.db);
   const path = url.pathname;
   const method = request.method;
 
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
+  // Origin-aware CORS headers — no wildcard
+  const corsHeaders = getCorsHeaders(request, env);
 
   if (method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -76,7 +111,7 @@ export async function handleAdminRoutes(request, env, url) {
         recent_logs: recentLogs.results
       }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -107,7 +142,7 @@ export async function handleAdminRoutes(request, env, url) {
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -125,7 +160,9 @@ export async function handleAdminRoutes(request, env, url) {
   // --- GET ALL ---
   if (method === 'GET' && !recordId) {
     try {
-      let queryStr = `SELECT * FROM ${tableName}`;
+      // Use a safe column projection for sensitive tables (e.g. never return password_hash)
+      const columns = SAFE_COLUMNS[tableName] || '*';
+      let queryStr = `SELECT ${columns} FROM ${tableName}`;
       const params = [];
       
       // Support soft delete filtering where applicable
@@ -166,14 +203,16 @@ export async function handleAdminRoutes(request, env, url) {
       const rows = await db.query(queryStr, params);
       return new Response(JSON.stringify(rows.results), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
   // --- GET ONE ---
   if (method === 'GET' && recordId) {
     try {
-      const row = await db.get(`SELECT * FROM ${tableName} WHERE id = ?`, [recordId]);
+      // Use a safe column projection for sensitive tables (e.g. never return password_hash)
+      const columns = SAFE_COLUMNS[tableName] || '*';
+      const row = await db.get(`SELECT ${columns} FROM ${tableName} WHERE id = ?`, [recordId]);
       if (!row) {
         return new Response(JSON.stringify({ error: 'Record not found' }), { status: 404, headers: corsHeaders });
       }
@@ -199,7 +238,7 @@ export async function handleAdminRoutes(request, env, url) {
 
       return new Response(JSON.stringify(row), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -218,8 +257,22 @@ export async function handleAdminRoutes(request, env, url) {
       delete body.documents;
       delete body.tags;
 
-      // Dynamically build INSERT query
-      const keys = Object.keys(body);
+      // ── SECURITY: column-name allowlist ─────────────────────────────────────
+      // Column names are embedded verbatim into SQL; they CANNOT be parameterised.
+      // Filter the request body keys against the per-table allowlist so that only
+      // schema-known, writable columns are ever included in the query string.
+      // 'id' is always allowed for INSERT (the value was just generated above).
+      const allowedForInsert = new Set(['id', ...(WRITABLE_COLUMNS[tableName] || [])]);
+      const keys = Object.keys(body).filter(k => allowedForInsert.has(k));
+
+      if (keys.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No valid fields provided for insert' }),
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      // ────────────────────────────────────────────────────────────────────────
+
       const placeholders = keys.map(() => '?').join(', ');
       const sql = `INSERT INTO ${tableName} (${keys.join(', ')}) VALUES (${placeholders})`;
       const params = keys.map(k => {
@@ -232,10 +285,6 @@ export async function handleAdminRoutes(request, env, url) {
         }
         return val;
       });
-
-      console.log('EXECUTING INSERT ON TABLE:', tableName);
-      console.log('SQL:', sql);
-      console.log('PARAMS:', JSON.stringify(params));
 
       await db.run(sql, params);
 
@@ -274,7 +323,7 @@ export async function handleAdminRoutes(request, env, url) {
 
       return new Response(JSON.stringify({ success: true, id }), { status: 201, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -293,10 +342,22 @@ export async function handleAdminRoutes(request, env, url) {
       delete body.documents;
       delete body.tags;
 
-      // Dynamically build UPDATE query
-      const keys = Object.keys(body);
+      // ── SECURITY: column-name allowlist ─────────────────────────────────────
+      // Same rationale as the INSERT path: column names go into the SQL string
+      // verbatim, so they must be validated before use.
+      // 'id' and 'created_at' are already removed from body above.
+      const allowedForUpdate = new Set(WRITABLE_COLUMNS[tableName] || []);
+      const keys = Object.keys(body).filter(k => allowedForUpdate.has(k));
+
+      if (keys.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No valid fields provided for update' }),
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      // ────────────────────────────────────────────────────────────────────────
+
       const assignments = keys.map(k => `${k} = ?`).join(', ');
-      
       const sql = `UPDATE ${tableName} SET ${assignments}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
       const params = keys.map(k => {
         let val = body[k];
@@ -309,10 +370,6 @@ export async function handleAdminRoutes(request, env, url) {
         return val;
       });
       params.push(recordId);
-
-      console.log('EXECUTING UPDATE ON TABLE:', tableName);
-      console.log('SQL:', sql);
-      console.log('PARAMS:', JSON.stringify(params));
 
       await db.run(sql, params);
 
@@ -354,7 +411,7 @@ export async function handleAdminRoutes(request, env, url) {
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -378,7 +435,7 @@ export async function handleAdminRoutes(request, env, url) {
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -419,7 +476,7 @@ export async function handleAdminRoutes(request, env, url) {
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 

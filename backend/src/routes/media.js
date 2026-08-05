@@ -1,16 +1,18 @@
 import { Database } from '../db.js';
+import {
+  validateFile,
+  ALLOWED_MEDIA_TYPES,
+  MAX_MEDIA_FILE_SIZE,
+} from '../validation.js';
+import { getCorsHeaders } from '../cors.js';
 
 export async function handleMediaRoutes(request, env, url) {
   const db = new Database(request.services.db);
   const path = url.pathname;
   const method = request.method;
 
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
+  // Origin-aware CORS headers — no wildcard
+  const corsHeaders = getCorsHeaders(request, env);
 
   if (method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -46,7 +48,7 @@ export async function handleMediaRoutes(request, env, url) {
       const res = await db.query(queryStr, params);
       return new Response(JSON.stringify(res.results), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -60,7 +62,7 @@ export async function handleMediaRoutes(request, env, url) {
       }
       return new Response(JSON.stringify(folders), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -73,10 +75,33 @@ export async function handleMediaRoutes(request, env, url) {
 
       const formData = await request.formData();
       const file = formData.get('file');
-      
+
       if (!file) {
         return new Response(JSON.stringify({ error: 'No file uploaded' }), { status: 400, headers: corsHeaders });
       }
+
+      // ── Read the buffer first so we can inspect magic bytes ───────────────
+      // Size is checked inside validateFile(); reading here avoids a second
+      // arrayBuffer() call (streams can only be consumed once).
+      const fileBuffer = await file.arrayBuffer();
+
+      // ── File validation (magic bytes + extension + size) ──────────────────
+      // We pass fileMeta separately because file.arrayBuffer() was already
+      // consumed above and file.size reflects the declared size from headers.
+      const fileValidation = validateFile(
+        { name: file.name, type: file.type, size: file.size },
+        fileBuffer,
+        ALLOWED_MEDIA_TYPES,
+        MAX_MEDIA_FILE_SIZE
+      );
+      if (!fileValidation.valid) {
+        return new Response(
+          JSON.stringify({ error: fileValidation.error }),
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      // Use the magic-byte-detected type, NOT the client-supplied Content-Type.
+      const detectedMime = fileValidation.mimeType;
 
       const name = formData.get('name') || file.name;
       const folder = formData.get('folder') || '/';
@@ -85,32 +110,42 @@ export async function handleMediaRoutes(request, env, url) {
       const width = formData.get('width') ? parseInt(formData.get('width'), 10) : null;
       const height = formData.get('height') ? parseInt(formData.get('height'), 10) : null;
 
-      // Handle thumbnail if uploaded
-      const thumbnailFile = formData.get('thumbnail');
-
       const mediaId = db.generateUUID();
-      
-      // Clean path name for R2/Storage Key
+
+      // Clean path name for R2/Storage key
       const cleanFolderName = folder === '/' ? '' : folder.replace(/^\/+|\/+$/g, '') + '/';
       const cleanFileName = `${mediaId}-${name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
       const r2Path = `${cleanFolderName}${cleanFileName}`;
 
-      // Upload main file to storage
-      const fileBuffer = await file.arrayBuffer();
-      await request.services.storage.upload(r2Path, fileBuffer, file.type);
+      // Upload main file using the validated (detected) MIME type
+      await request.services.storage.upload(r2Path, fileBuffer, detectedMime);
 
+      // ── Optional thumbnail ────────────────────────────────────────────────
+      const thumbnailFile = formData.get('thumbnail');
       let thumbnailPath = null;
       if (thumbnailFile) {
-        thumbnailPath = `thumbnails/${mediaId}-thumb-${name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
         const thumbBuffer = await thumbnailFile.arrayBuffer();
-        await request.services.storage.upload(thumbnailPath, thumbBuffer, thumbnailFile.type);
+        const thumbValidation = validateFile(
+          { name: thumbnailFile.name, type: thumbnailFile.type, size: thumbnailFile.size },
+          thumbBuffer,
+          ALLOWED_MEDIA_TYPES,
+          MAX_MEDIA_FILE_SIZE
+        );
+        if (!thumbValidation.valid) {
+          return new Response(
+            JSON.stringify({ error: `Thumbnail: ${thumbValidation.error}` }),
+            { status: 400, headers: corsHeaders }
+          );
+        }
+        thumbnailPath = `thumbnails/${mediaId}-thumb-${name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+        await request.services.storage.upload(thumbnailPath, thumbBuffer, thumbValidation.mimeType);
       }
 
-      // Save metadata in database
+      // Save metadata — use the detected MIME type, not the claimed one
       await db.run(
-        `INSERT INTO media (id, name, path, size, mime_type, alt_text, caption, folder, thumbnail_path, width, height) 
+        `INSERT INTO media (id, name, path, size, mime_type, alt_text, caption, folder, thumbnail_path, width, height)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [mediaId, name, r2Path, file.size, file.type, altText, caption, folder, thumbnailPath, width, height]
+        [mediaId, name, r2Path, file.size, detectedMime, altText, caption, folder, thumbnailPath, width, height]
       );
 
       // Audit log
@@ -126,7 +161,7 @@ export async function handleMediaRoutes(request, env, url) {
           name,
           path: r2Path,
           size: file.size,
-          mime_type: file.type,
+          mime_type: detectedMime,
           alt_text: altText,
           caption,
           folder,
@@ -134,7 +169,8 @@ export async function handleMediaRoutes(request, env, url) {
         }
       }), { status: 201, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      console.error('[media upload] Error:', e);
+      return new Response(JSON.stringify({ error: 'Upload failed.' }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -167,7 +203,7 @@ export async function handleMediaRoutes(request, env, url) {
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -225,7 +261,7 @@ export async function handleMediaRoutes(request, env, url) {
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 

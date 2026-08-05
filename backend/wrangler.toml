@@ -2,8 +2,14 @@ name = "josmar-backend"
 main = "src/index.js"
 compatibility_date = "2024-03-01"
 
-[vars]
-JWT_SECRET = "super_secret_local_jwt_key_should_be_changed_in_prod"
+# ── Cloudflare Worker Secrets (NOT stored here) ──────────────────────────────
+# JWT_SECRET must be provisioned as an encrypted Cloudflare Worker Secret:
+#
+#   wrangler secret put JWT_SECRET
+#
+# Run that command once per environment (production, staging, etc.).
+# Never place the actual secret value in this file — it is committed to Git.
+# ─────────────────────────────────────────────────────────────────────────────
 
 [[d1_databases]]
 binding = "DB"

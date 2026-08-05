@@ -1,17 +1,21 @@
 import { Database } from '../db.js';
+import {
+  validateFile,
+  validateTextFields,
+  ALLOWED_RESUME_TYPES,
+  MAX_RESUME_FILE_SIZE,
+  CONTACT_SCHEMA,
+  APPLICATION_TEXT_SCHEMA,
+} from '../validation.js';
+import { getCorsHeaders } from '../cors.js';
 
 export async function handlePublicRoutes(request, env, url) {
   const db = new Database(request.services.db);
   const path = url.pathname;
   const method = request.method;
 
-  // Helper: CORS Headers
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
+  // Origin-aware CORS headers — no wildcard
+  const corsHeaders = getCorsHeaders(request, env);
 
   if (method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -37,7 +41,7 @@ export async function handlePublicRoutes(request, env, url) {
       });
       return new Response(JSON.stringify(settings), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -125,7 +129,7 @@ export async function handlePublicRoutes(request, env, url) {
 
       return new Response(JSON.stringify(payload), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -141,7 +145,7 @@ export async function handlePublicRoutes(request, env, url) {
       );
       return new Response(JSON.stringify(res.results), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -175,7 +179,7 @@ export async function handlePublicRoutes(request, env, url) {
       const res = await db.query(queryStr, params);
       return new Response(JSON.stringify(res.results), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -212,7 +216,7 @@ export async function handlePublicRoutes(request, env, url) {
 
       return new Response(JSON.stringify(project), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -241,7 +245,7 @@ export async function handlePublicRoutes(request, env, url) {
         other_certificates: otherCerts.results
       }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -282,7 +286,7 @@ export async function handlePublicRoutes(request, env, url) {
         images: images.results
       }), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -292,7 +296,7 @@ export async function handlePublicRoutes(request, env, url) {
       const res = await db.query("SELECT * FROM careers WHERE status = 'published' AND deleted_at IS NULL ORDER BY display_order ASC");
       return new Response(JSON.stringify(res.results), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -300,70 +304,106 @@ export async function handlePublicRoutes(request, env, url) {
   if (method === 'POST' && path === '/api/public/careers/apply') {
     try {
       const formData = await request.formData();
-      const career_id = formData.get('career_id');
-      const applicant_name = formData.get('applicant_name');
-      const applicant_email = formData.get('applicant_email');
-      const cover_letter = formData.get('cover_letter') || '';
-      const resumeFile = formData.get('resume');
+      const career_id       = formData.get('career_id')        || '';
+      const applicant_name  = formData.get('applicant_name')   || '';
+      const applicant_email = formData.get('applicant_email')  || '';
+      const cover_letter    = formData.get('cover_letter')     || '';
+      const resumeFile      = formData.get('resume');
 
-      if (!career_id || !applicant_name || !applicant_email || !resumeFile) {
-        return new Response(JSON.stringify({ error: 'Missing required application fields or resume file' }), { status: 400, headers: corsHeaders });
+      // ── 1. Validate text fields first (length limits + email format) ───────
+      const textCheck = validateTextFields(
+        { career_id, applicant_name, applicant_email, cover_letter },
+        APPLICATION_TEXT_SCHEMA
+      );
+      if (!textCheck.valid) {
+        return new Response(JSON.stringify({ error: textCheck.error }), { status: 400, headers: corsHeaders });
       }
 
-      // 1. Upload Resume file to R2
+      if (!resumeFile) {
+        return new Response(JSON.stringify({ error: '"resume" file is required.' }), { status: 400, headers: corsHeaders });
+      }
+
+      if (!request.services.storage) {
+        return new Response(JSON.stringify({ error: 'Storage service not available.' }), { status: 500, headers: corsHeaders });
+      }
+
+      // ── 2. Read file buffer (streams can only be consumed once) ───────────
+      const fileBuffer = await resumeFile.arrayBuffer();
+
+      // ── 3. Validate resume file (magic bytes + extension + size) ──────────
+      const fileCheck = validateFile(
+        { name: resumeFile.name, type: resumeFile.type, size: resumeFile.size },
+        fileBuffer,
+        ALLOWED_RESUME_TYPES,
+        MAX_RESUME_FILE_SIZE
+      );
+      if (!fileCheck.valid) {
+        return new Response(JSON.stringify({ error: fileCheck.error }), { status: 400, headers: corsHeaders });
+      }
+      // Use the magic-byte-detected MIME type for storage and the media record.
+      const detectedMime = fileCheck.mimeType;
+
+      // ── 4. Upload resume to private storage path ──────────────────────────
       const mediaId = db.generateUUID();
       const cleanFileName = `${mediaId}-${resumeFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
       const r2Path = `resumes/${cleanFileName}`;
 
-      if (request.services.storage) {
-        const fileBuffer = await resumeFile.arrayBuffer();
-        await request.services.storage.upload(r2Path, fileBuffer, resumeFile.type);
-      } else {
-        return new Response(JSON.stringify({ error: 'Storage service not bound' }), { status: 500, headers: corsHeaders });
-      }
+      await request.services.storage.upload(r2Path, fileBuffer, detectedMime);
 
-      // 2. Insert media metadata record (under /resumes folder)
+      // ── 5. Insert media metadata (uses detected MIME, not client-claimed) ─
       await db.run(
-        `INSERT INTO media (id, name, path, size, mime_type, folder) 
+        `INSERT INTO media (id, name, path, size, mime_type, folder)
          VALUES (?, ?, ?, ?, ?, '/resumes')`,
-        [mediaId, resumeFile.name, r2Path, resumeFile.size, resumeFile.type]
+        [mediaId, resumeFile.name, r2Path, resumeFile.size, detectedMime]
       );
 
-      // 3. Insert application record
+      // ── 6. Insert application record ──────────────────────────────────────
       const id = db.generateUUID();
       await db.run(
-        `INSERT INTO applications (id, career_id, applicant_name, applicant_email, resume_media_id, cover_letter, status) 
+        `INSERT INTO applications (id, career_id, applicant_name, applicant_email, resume_media_id, cover_letter, status)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [id, career_id, applicant_name, applicant_email, mediaId, cover_letter, 'pending']
       );
 
-      return new Response(JSON.stringify({ success: true, message: 'Application submitted successfully' }), { status: 201, headers: corsHeaders });
+      return new Response(
+        JSON.stringify({ success: true, message: 'Application submitted successfully' }),
+        { status: 201, headers: corsHeaders }
+      );
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      console.error('[career apply] Error:', e);
+      return new Response(JSON.stringify({ error: 'Submission failed. Please try again.' }), { status: 500, headers: corsHeaders });
     }
   }
-
 
   // 10. Contact Submission
   if (method === 'POST' && path === '/api/public/contact') {
     try {
       const body = await request.json();
-      const { name, email, phone, subject, message } = body;
 
-      if (!name || !email || !subject || !message) {
-        return new Response(JSON.stringify({ error: 'Missing required contact fields' }), { status: 400, headers: corsHeaders });
+      // ── Validate all text fields: length limits + email format ─────────────
+      // Prevents storage DoS (oversized payloads) and stored XSS via the admin
+      // panel if it ever renders contact messages without escaping.
+      const check = validateTextFields(body, CONTACT_SCHEMA);
+      if (!check.valid) {
+        return new Response(JSON.stringify({ error: check.error }), { status: 400, headers: corsHeaders });
       }
+
+      const { name, email, phone, subject, message } = body;
 
       const id = db.generateUUID();
       await db.run(
-        `INSERT INTO contact_messages (id, name, email, phone, subject, message, is_read) 
+        `INSERT INTO contact_messages (id, name, email, phone, subject, message, is_read)
          VALUES (?, ?, ?, ?, ?, ?, 0)`,
-        [id, name, email, phone || '', subject, message]
+        [id, name.trim(), email.trim(), (phone || '').trim(), subject.trim(), message.trim()]
       );
 
-      return new Response(JSON.stringify({ success: true, message: 'Message sent successfully' }), { status: 201, headers: corsHeaders });
+      return new Response(
+        JSON.stringify({ success: true, message: 'Message sent successfully' }),
+        { status: 201, headers: corsHeaders }
+      );
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      console.error('[contact] Error:', e);
+      return new Response(JSON.stringify({ error: 'Submission failed. Please try again.' }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -405,7 +445,7 @@ export async function handlePublicRoutes(request, env, url) {
       const res = await db.query(queryStr, params);
       return new Response(JSON.stringify(res.results), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -438,7 +478,7 @@ export async function handlePublicRoutes(request, env, url) {
 
       return new Response(JSON.stringify(blog), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
@@ -467,7 +507,7 @@ export async function handlePublicRoutes(request, env, url) {
 
       return new Response(JSON.stringify(seo), { status: 200, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "An internal server error occurred." }), { status: 500, headers: corsHeaders });
     }
   }
 
